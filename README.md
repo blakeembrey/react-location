@@ -41,7 +41,7 @@ const App = () => {
 };
 ```
 
-**Tip:** For a better routing experience, combine with [`@blakeembrey/react-route`](https://github.com/blakeembrey/react-route).
+**Tip:** For a simpler routing experience, combine with [`@blakeembrey/react-route`](https://github.com/blakeembrey/react-route).
 
 ```js
 import { route } from "@blakeembrey/react-route";
@@ -51,7 +51,7 @@ export default () => (
     {route("/", () => (
       <div>Home</div>
     ))}
-    {route("/page/:id", id => (
+    {route("/page/:id", ([id]) => (
       <Page id={id} />
     ))}
   </div>
