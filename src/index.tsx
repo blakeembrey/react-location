@@ -111,7 +111,7 @@ export const Context = React.createContext(
 /**
  * Route component listens for route changes.
  */
-export class Route extends React.Component<{
+export class Router extends React.Component<{
   children: (url: URL, location: SimpleLocation) => React.ReactNode;
 }> {
   static contextType = Context;

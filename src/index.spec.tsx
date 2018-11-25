@@ -2,7 +2,7 @@ import * as React from "react";
 import { render } from "react-dom";
 import {
   Context,
-  Route,
+  Router,
   Link,
   SimpleLocation,
   HashLocation,
@@ -34,11 +34,11 @@ describe("react location", () => {
 
     render(
       <Context.Provider value={location}>
-        <Route>
+        <Router>
           {({ pathname }) => {
             return <div>{pathname}</div>;
           }}
-        </Route>
+        </Router>
       </Context.Provider>,
       node
     );

@@ -18,11 +18,11 @@ npm install @blakeembrey/react-location --save
 **React Location** exports a React.js `Context` to control routing. The default router is `SimpleLocation`, useful for testing or server-side rendering.
 
 ```js
-import { Link, Route } from "@blakeembrey/react-location";
+import { Link, Router } from "@blakeembrey/react-location";
 
 const App = () => {
   return (
-    <Route>
+    <Router>
       {(url, location) => {
         return (
           <div>
