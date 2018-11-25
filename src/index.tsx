@@ -91,7 +91,9 @@ export class HashLocation extends SimpleLocation {
   }
 
   format(location: string) {
-    return `#!${location || "/"}`;
+    const { pathname, search, hash } = new URL(location, this.url.href)
+
+    return `#!${pathname}${search}${hash}`;
   }
 
   unsubscribe() {

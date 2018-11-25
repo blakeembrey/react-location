@@ -78,6 +78,34 @@ describe("react location", () => {
     document.body.removeChild(node);
   });
 
+  it('should render relative hash location links', () => {
+    // Set before creating the hash router, JSDOM doesn't emit `hashchange`.
+    window.location.hash = '#!/foo/bar?test=true'
+
+    const location = new HashLocation();
+    const node = document.createElement("div");
+
+    document.body.appendChild(node);
+
+    render(
+      <Context.Provider value={location}>
+        <Link to="baz">Click here</Link>
+      </Context.Provider>,
+      node
+    );
+
+    const el = node.children[0] as HTMLAnchorElement;
+
+    expect(window.location.href).toEqual("http://localhost/#!/foo/bar?test=true");
+
+    el.click();
+
+    expect(window.location.href).toEqual("http://localhost/#!/foo/baz");
+
+    window.location.hash = ""; // Reset.
+    document.body.removeChild(node);
+  });
+
   it("should render history location", () => {
     const location = new HistoryLocation();
     const node = document.createElement("div");
