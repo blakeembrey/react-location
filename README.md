@@ -23,7 +23,7 @@ import { Link, Route } from "@blakeembrey/react-location";
 const App = () => {
   return (
     <Route>
-      {url => {
+      {(url, location) => {
         return (
           <div>
             <nav>
@@ -71,9 +71,9 @@ import { Context, HashLocation } from '@blakeembrey/react-location'
 ### [History Location](examples/history/app.js)
 
 ```js
-import { Context, HashLocation } from '@blakeembrey/react-location'
+import { Context, HistoryLocation } from '@blakeembrey/react-location'
 
-<Context.Provider value={new HashLocation()}>
+<Context.Provider value={new HistoryLocation()}>
   <App />
 </Context.Provider>
 ```
