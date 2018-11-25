@@ -43,7 +43,7 @@ const App = () => {
 
 **Location Properties:**
 
-- `url` Get the locations current URL
+- `url` Get the locations current [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL)
 - `push(location: string)` Push the user to a new URL (e.g. `<Link />` or dynamic redirects)
 - `format(location: string)` Format the URL for `<Link />`
 - `onChange(fn: () => void)` Notify `fn` on URL change (returns an `unsubscribe` function)
