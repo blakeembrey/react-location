@@ -91,7 +91,7 @@ export class HashLocation extends SimpleLocation {
   }
 
   format(location: string) {
-    const { pathname, search, hash } = new URL(location, this.url.href)
+    const { pathname, search, hash } = new URL(location, this.url.href);
 
     return `#!${pathname}${search}${hash}`;
   }
@@ -107,14 +107,6 @@ export class HashLocation extends SimpleLocation {
 export const Context = React.createContext(
   new SimpleLocation(new URL("http://localhost"))
 );
-
-/**
- * Link props extends `<a />` props with a `to` property.
- */
-export interface LinkProps
-  extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
-  to: string;
-}
 
 /**
  * Route component listens for route changes.
@@ -147,30 +139,48 @@ export class Route extends React.Component<{
 }
 
 /**
+ * Link props extends `<a />` props with a `to` property.
+ */
+export interface LinkProps
+  extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
+  to: string;
+}
+
+/**
+ * Inline `<Link />` click handler.
+ */
+function onClick(
+  e: React.MouseEvent<any>,
+  location: SimpleLocation,
+  to: string,
+  props: React.AnchorHTMLAttributes<HTMLAnchorElement>
+) {
+  // Proxy event to user.
+  if (props.onClick) props.onClick(e);
+
+  // Reference: https://github.com/ReactTraining/react-router/blob/5407993bd01647405586bbdd25f24de05743e4a7/packages/react-router-dom/modules/Link.js#L18-L22
+  if (e.defaultPrevented) return;
+  if (e.button !== 0) return;
+  if (props.target && props.target !== "_self") return;
+  if (e.metaKey || e.altKey || e.ctrlKey || e.shiftKey) return;
+
+  e.preventDefault();
+  return location.push(to);
+}
+
+/**
  * Create a simple `<a />` link.
  */
 export function Link({ to, children, ...props }: LinkProps) {
-  const onClick = (e: React.MouseEvent<any>, location: SimpleLocation) => {
-    // Proxy event to user.
-    if (props.onClick) props.onClick(e);
-
-    // Reference: https://github.com/ReactTraining/react-router/blob/5407993bd01647405586bbdd25f24de05743e4a7/packages/react-router-dom/modules/Link.js#L18-L22
-    if (e.defaultPrevented) return;
-    if (e.button !== 0) return;
-    if (props.target && props.target !== "_self") return;
-    if (e.metaKey || e.altKey || e.ctrlKey || e.shiftKey) return;
-
-    e.preventDefault();
-    location.push(to);
-  };
-
   return (
     <Context.Consumer>
       {location => {
-        const href = location.format(to);
-
         return (
-          <a {...props} href={href} onClick={e => onClick(e, location)}>
+          <a
+            {...props}
+            href={location.format(to)}
+            onClick={e => onClick(e, location, to, props)}
+          >
             {children}
           </a>
         );
