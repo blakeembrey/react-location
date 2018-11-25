@@ -85,12 +85,15 @@ import { Context, HistoryLocation } from '@blakeembrey/react-location'
 </Context.Provider>
 ```
 
-### [Simple Location](examples/simple/app.js) (Server-side Rendering)
+### [Simple Location](examples/simple/app.js)
+
+Useful for testing React.js applications or server-side rendering.
 
 ```js
 import { Context, SimpleLocation } from '@blakeembrey/react-location'
 
-const location = new SimpleLocation(new URL(`http://example.com/${req.url}`))
+// E.g. `req.url` from a node.js HTTP server.
+const location = new SimpleLocation(new URL(`http://example.com${req.url}`))
 
 <Context.Provider value={location}>
   <App />
