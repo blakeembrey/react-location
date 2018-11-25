@@ -15,7 +15,7 @@ npm install @blakeembrey/react-location --save
 
 ## Usage
 
-**React Location** exports a React.js `Context` to control routing. The default router is `SimpleLocation`, useful for server-side rendering where there's no address bar.
+**React Location** exports a React.js `Context` to control routing. The default router is `SimpleLocation`, useful for testing or server-side rendering.
 
 ```js
 import { Link, Route } from "@blakeembrey/react-location";
@@ -40,6 +40,13 @@ const App = () => {
   );
 };
 ```
+
+**Location Properties:**
+
+- `url` Get the locations current URL
+- `push(location: string)` Push the user to a new URL (e.g. `<Link />` or dynamic redirects)
+- `format(location: string)` Format the URL for `<Link />`
+- `onChange(fn: () => void)` Notify `fn` on URL change (returns an `unsubscribe` function)
 
 **Tip:** For a simpler routing experience, combine with [`@blakeembrey/react-route`](https://github.com/blakeembrey/react-route).
 
