@@ -68,8 +68,8 @@ export class HistoryLocation extends SimpleLocation {
  * Get URL path from hash string.
  */
 function pathFromHash(hash: string) {
-  if (!hash || hash.charAt(1) !== "!") return "/";
-  return hash.substr(2) || "/";
+  if (hash.substr(0, 3) !== "#!/") return "/";
+  return hash.substr(2);
 }
 
 /**
