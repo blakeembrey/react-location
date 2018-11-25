@@ -51,16 +51,12 @@ const App = () => {
 **Tip:** For a simpler routing experience, combine with [`@blakeembrey/react-route`](https://github.com/blakeembrey/react-route).
 
 ```js
-import { route } from "@blakeembrey/react-route";
+import { Route } from "@blakeembrey/react-route";
 
 export default () => (
   <div>
-    {route("/", () => (
-      <div>Home</div>
-    ))}
-    {route("/page/:id", ([id]) => (
-      <Page id={id} />
-    ))}
+    <Route path="/">{() => <div>Home</div>}</Route>
+    <Route path="/page/:id">{([id]) => <Page id={id} />}</Route>
   </div>
 );
 ```
