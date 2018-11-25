@@ -11,7 +11,7 @@ export const callbackFns = Symbol("callbackFns");
  */
 export class SimpleLocation {
   private [currentUrl]: URL;
-  private [callbackFns]: Set<() => void> = new Set();
+  private [callbackFns]: Set<(url: URL) => void> = new Set();
 
   constructor(url: URL) {
     this.url = url;
@@ -23,7 +23,7 @@ export class SimpleLocation {
 
   set url(url: URL) {
     this[currentUrl] = url;
-    for (const fn of this[callbackFns]) fn();
+    for (const fn of this[callbackFns]) fn(url);
   }
 
   push(location: string) {
@@ -34,7 +34,7 @@ export class SimpleLocation {
     return location;
   }
 
-  onChange(fn: () => void) {
+  onChange(fn: (url: URL) => void) {
     const fns = this[callbackFns];
     fns.add(fn);
     return () => void fns.delete(fn);
@@ -109,33 +109,22 @@ export const Context = React.createContext(
 );
 
 /**
+ * Router props.
+ */
+export interface RouterProps {
+  children: (url: URL, location: SimpleLocation) => React.ReactElement<any>;
+}
+
+/**
  * Route component listens for route changes.
  */
-export class Router extends React.Component<{
-  children: (url: URL, location: SimpleLocation) => React.ReactNode;
-}> {
-  static contextType = Context;
+export function Router({ children }: RouterProps) {
+  const context = React.useContext(Context);
+  const [url, setUrl] = React.useState(context.url);
 
-  unsubscribe?: () => void;
-  context!: React.ContextType<typeof Context>;
+  React.useLayoutEffect(() => context.onChange(setUrl), [context]);
 
-  state = {
-    url: this.context.url
-  };
-
-  componentDidMount() {
-    this.unsubscribe = this.context.onChange(() => {
-      return this.setState({ url: this.context.url });
-    });
-  }
-
-  componentWillUnmount() {
-    if (this.unsubscribe) this.unsubscribe();
-  }
-
-  render() {
-    return this.props.children(this.state.url, this.context);
-  }
+  return children(url, context);
 }
 
 /**
@@ -187,4 +176,22 @@ export function Link({ to, children, ...props }: LinkProps) {
       }}
     </Context.Consumer>
   );
+}
+
+/**
+ * Redirect component properties.
+ */
+export interface RedirectProps {
+  to: string;
+}
+
+/**
+ * Declarative redirection.
+ */
+export function Redirect({ to }: RedirectProps) {
+  const context = React.useContext(Context);
+
+  React.useEffect(() => context.push(to));
+
+  return null;
 }

@@ -7,6 +7,8 @@
 
 > Light-weight and universal react routing.
 
+Uses [React.js hooks](https://reactjs.org/docs/hooks-intro.html).
+
 ## Installation
 
 ```
@@ -18,7 +20,7 @@ npm install @blakeembrey/react-location --save
 **React Location** exports a React.js `Context` to control routing. The default router is `SimpleLocation`, useful for testing or server-side rendering.
 
 ```js
-import { Link, Router } from "@blakeembrey/react-location";
+import { Link, Redirect, Router } from "@blakeembrey/react-location";
 
 const App = () => {
   return (
@@ -31,6 +33,7 @@ const App = () => {
               <Link to="/about">About</Link>
             </nav>
 
+            {url.pathname === '/about-me' && <Redirect to="/about" />}
             {url.pathname === "/" && <div>Home</div>}
             {url.pathname === "/about" && <div>About</div>}
           </div>
