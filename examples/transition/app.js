@@ -11,7 +11,13 @@ import {
   Context as StyleContext,
   StyleSheetRenderer
 } from "react-free-style";
-import { Router, Link, Redirect } from "../../dist";
+import {
+  Router,
+  Link,
+  Redirect,
+  HashLocation,
+  Context as LocationContext
+} from "../../dist";
 
 const html = htm.bind(React.createElement);
 
@@ -106,8 +112,10 @@ function HSL({ params }) {
 
   return html`
     <div
-      className=${`${styles.fill} ${styles.color}`}
-      style=${{ background: `hsl(${params[0]}, ${params[1]}%, ${params[2]}%)` }}
+      className="${`${styles.fill} ${styles.color}`}"
+      style="${
+        { background: `hsl(${params[0]}, ${params[1]}%, ${params[2]}%)` }
+      }"
     >
       hsl(${params[0]}, ${params[1]}%, ${params[2]}%)
     </div>
@@ -119,8 +127,8 @@ function RGB({ params }) {
 
   return html`
     <div
-      className=${`${styles.fill} ${styles.color}`}
-      style=${{ background: `rgb(${params[0]}, ${params[1]}, ${params[2]})` }}
+      className="${`${styles.fill} ${styles.color}`}"
+      style="${{ background: `rgb(${params[0]}, ${params[1]}, ${params[2]})` }}"
     >
       rgb(${params[0]}, ${params[1]}, ${params[2]})
     </div>
@@ -129,9 +137,13 @@ function RGB({ params }) {
 
 render(
   React.createElement(
-    StyleContext.Provider,
-    { value: new StyleSheetRenderer() },
-    React.createElement(AnimationExample)
+    LocationContext.Provider,
+    { value: new HashLocation() },
+    React.createElement(
+      StyleContext.Provider,
+      { value: new StyleSheetRenderer() },
+      React.createElement(AnimationExample)
+    )
   ),
   document.body
 );

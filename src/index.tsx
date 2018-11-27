@@ -112,19 +112,33 @@ export const Context = React.createContext(
  * Router props.
  */
 export interface RouterProps {
-  children: (url: URL, location: SimpleLocation) => React.ReactElement<any>;
+  children: (url: URL, location: SimpleLocation) => React.ReactNode;
 }
 
 /**
  * Route component listens for route changes.
  */
-export function Router({ children }: RouterProps) {
-  const context = React.useContext(Context);
-  const [url, setUrl] = React.useState(context.url);
+export class Router extends React.Component<RouterProps> {
+  static contextType = Context;
 
-  React.useLayoutEffect(() => context.onChange(setUrl), [context]);
+  unsubscribe?: () => void;
+  context!: React.ContextType<typeof Context>;
 
-  return children(url, context);
+  state = {
+    url: this.context.url
+  };
+
+  componentDidMount() {
+    this.unsubscribe = this.context.onChange(url => this.setState({ url }));
+  }
+
+  componentWillUnmount() {
+    if (this.unsubscribe) this.unsubscribe();
+  }
+
+  render() {
+    return this.props.children(this.state.url, this.context);
+  }
 }
 
 /**
@@ -190,8 +204,6 @@ export interface RedirectProps {
  */
 export function Redirect({ to }: RedirectProps) {
   const context = React.useContext(Context);
-
   React.useEffect(() => context.push(to));
-
   return null;
 }
