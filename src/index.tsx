@@ -45,22 +45,24 @@ export class SimpleLocation {
  * History-based location for browsers.
  */
 export class HistoryLocation extends SimpleLocation {
-  private listener = () => {
+  private onpopstate = () => {
     this.url = new URL(window.location.href);
   };
 
   constructor() {
     super(new URL(window.location.href));
 
-    window.addEventListener("popstate", this.listener);
+    window.addEventListener("popstate", this.onpopstate);
   }
 
   push(location: string) {
-    window.history.pushState(undefined, "", this.format(location));
+    const url = this.format(location);
+    this.url = new URL(url, window.location.href);
+    window.history.pushState(undefined, "", url);
   }
 
   unsubscribe() {
-    window.removeEventListener("popstate", this.listener);
+    window.removeEventListener("popstate", this.onpopstate);
   }
 }
 
