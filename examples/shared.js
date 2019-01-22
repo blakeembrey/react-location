@@ -4,7 +4,7 @@ import {
   Context as StyleContext,
   StyleSheetRenderer
 } from "react-free-style";
-import { Link, Route } from "../dist";
+import { Link, Router } from "../dist";
 
 const useStyles = createStyles(
   {
@@ -19,8 +19,9 @@ const useStyles = createStyles(
   },
   {
     "html,body": {
+      width: "100%",
       height: "100%",
-      width: "100%"
+      margin: 0
     },
     body: {
       fontFamily: "sans-serif",
@@ -34,7 +35,7 @@ const useStyles = createStyles(
 const App = () => {
   const styles = useStyles();
 
-  return React.createElement(Route, {}, url =>
+  return React.createElement(Router, {}, url =>
     React.createElement(
       "div",
       {
