@@ -22,6 +22,9 @@ export class SimpleLocation {
   }
 
   set url(url: URL) {
+    // Avoid unnecessary changes.
+    if (this[currentUrl] && url.href === this[currentUrl].href) return;
+
     this[currentUrl] = url;
     for (const fn of this[callbackFns]) fn(url);
   }
