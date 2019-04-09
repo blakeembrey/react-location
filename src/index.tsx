@@ -147,18 +147,10 @@ export class Router extends React.Component<RouterProps> {
 }
 
 /**
- * Link props extends `<a />` props with a `to` property.
- */
-export interface LinkProps
-  extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
-  to: string;
-}
-
-/**
  * Inline `<Link />` click handler.
  */
 function onClick(
-  e: React.MouseEvent<any>,
+  e: React.MouseEvent<HTMLAnchorElement>,
   location: SimpleLocation,
   to: string,
   props: React.AnchorHTMLAttributes<HTMLAnchorElement>
@@ -177,24 +169,41 @@ function onClick(
 }
 
 /**
+ * Export HOC for `<a />` elements.
+ */
+export function withLink<
+  P extends {
+    href?: string;
+    children?: React.ReactNode;
+    onClick?: React.MouseEventHandler<HTMLAnchorElement>;
+  }
+>(Component: React.ComponentType<P>) {
+  return (props: P & { to: string }) => {
+    return (
+      <Context.Consumer>
+        {location => {
+          return (
+            <Component
+              {...props}
+              href={location.format(props.to)}
+              onClick={e => onClick(e, location, props.to, props)}
+            />
+          );
+        }}
+      </Context.Consumer>
+    );
+  };
+}
+
+/**
  * Create a simple `<a />` link.
  */
-export function Link({ to, children, ...props }: LinkProps) {
-  return (
-    <Context.Consumer>
-      {location => {
-        return (
-          <a
-            {...props}
-            href={location.format(to)}
-            onClick={e => onClick(e, location, to, props)}
-          >
-            {children}
-          </a>
-        );
-      }}
-    </Context.Consumer>
-  );
+export function Link(
+  props: React.AnchorHTMLAttributes<HTMLAnchorElement> & { to: string }
+) {
+  const Link = withLink(props => <a {...props} />);
+
+  return <Link {...props} />;
 }
 
 /**
