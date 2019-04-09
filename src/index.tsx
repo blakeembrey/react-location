@@ -198,13 +198,9 @@ export function withLink<
 /**
  * Create a simple `<a />` link.
  */
-export function Link(
-  props: React.AnchorHTMLAttributes<HTMLAnchorElement> & { to: string }
-) {
-  const Link = withLink(props => <a {...props} />);
-
-  return <Link {...props} />;
-}
+export const Link = withLink<React.AnchorHTMLAttributes<HTMLAnchorElement>>(
+  props => <a {...props} />
+);
 
 /**
  * Redirect component properties.
