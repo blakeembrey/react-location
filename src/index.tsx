@@ -11,7 +11,7 @@ export const callbackFns = Symbol("callbackFns");
  */
 export class SimpleLocation {
   private [currentUrl]: URL;
-  private [callbackFns]: Set<(url: URL) => void> = new Set();
+  private [callbackFns]: Set<() => void> = new Set();
 
   constructor(url: URL) {
     this.url = url;
@@ -26,7 +26,7 @@ export class SimpleLocation {
     if (this[currentUrl] && url.href === this[currentUrl].href) return;
 
     this[currentUrl] = url;
-    for (const fn of this[callbackFns]) fn(url);
+    for (const fn of this[callbackFns]) fn();
   }
 
   push(location: string) {
@@ -37,7 +37,7 @@ export class SimpleLocation {
     return location;
   }
 
-  onChange(fn: (url: URL) => void) {
+  onChange(fn: () => void) {
     const fns = this[callbackFns];
     fns.add(fn);
     return () => void fns.delete(fn);
@@ -114,36 +114,28 @@ export const Context = React.createContext(
 );
 
 /**
+ * React hook for routing.
+ */
+export function useRouter(): [URL, SimpleLocation] {
+  const location = React.useContext(Context);
+  const [url, setUrl] = React.useState(location.url);
+  React.useLayoutEffect(() => location.onChange(() => setUrl(location.url)));
+  return [url, location];
+}
+
+/**
  * Router props.
  */
 export interface RouterProps {
-  children: (url: URL, location: SimpleLocation) => React.ReactNode;
+  children: (url: URL, location: SimpleLocation) => JSX.Element | null;
 }
 
 /**
  * Route component listens for route changes.
  */
-export class Router extends React.Component<RouterProps> {
-  static contextType = Context;
-
-  unsubscribe?: () => void;
-  context!: React.ContextType<typeof Context>;
-
-  state = {
-    url: this.context.url
-  };
-
-  componentDidMount() {
-    this.unsubscribe = this.context.onChange(url => this.setState({ url }));
-  }
-
-  componentWillUnmount() {
-    if (this.unsubscribe) this.unsubscribe();
-  }
-
-  render() {
-    return this.props.children(this.state.url, this.context);
-  }
+export function Router({ children }: RouterProps) {
+  const [url, location] = useRouter();
+  return children(url, location);
 }
 
 /**

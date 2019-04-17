@@ -1,5 +1,6 @@
 import * as React from "react";
 import { render } from "react-dom";
+import { act } from "react-dom/test-utils";
 import {
   Context,
   Router,
@@ -48,7 +49,7 @@ describe("react location", () => {
     expect(el.nodeName).toEqual("DIV");
     expect(el.textContent).toEqual("/test");
 
-    location.push("/foo");
+    act(() => location.push("/foo"));
 
     expect(el.textContent).toEqual("/foo");
   });
@@ -70,7 +71,7 @@ describe("react location", () => {
 
     expect(window.location.href).toEqual("http://localhost/");
 
-    el.click();
+    act(() => el.click());
 
     expect(window.location.href).toEqual("http://localhost/#!/test");
 
@@ -78,9 +79,8 @@ describe("react location", () => {
     document.body.removeChild(node);
   });
 
-  it('should render relative hash location links', () => {
-    // Set before creating the hash router, JSDOM doesn't emit `hashchange`.
-    window.location.hash = '#!/foo/bar?test=true'
+  it("should render relative hash location links", () => {
+    window.location.hash = "#!/foo/bar?test=true";
 
     const location = new HashLocation();
     const node = document.createElement("div");
@@ -96,9 +96,11 @@ describe("react location", () => {
 
     const el = node.children[0] as HTMLAnchorElement;
 
-    expect(window.location.href).toEqual("http://localhost/#!/foo/bar?test=true");
+    expect(window.location.href).toEqual(
+      "http://localhost/#!/foo/bar?test=true"
+    );
 
-    el.click();
+    act(() => el.click());
 
     expect(window.location.href).toEqual("http://localhost/#!/foo/baz");
 
@@ -123,7 +125,7 @@ describe("react location", () => {
 
     expect(window.location.href).toEqual("http://localhost/");
 
-    el.click();
+    act(() => el.click());
 
     expect(window.location.href).toEqual("http://localhost/test");
 
