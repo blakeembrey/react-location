@@ -117,14 +117,10 @@ export const Context = React.createContext(
  * React hook for routing.
  */
 export function useRouter(): [URL, SimpleLocation] {
-  const location = React.useContext(Context);
-  const [url, setUrl] = React.useState(location.url);
-
-  React.useLayoutEffect(() => location.onChange(() => setUrl(location.url)), [
-    location
-  ]);
-
-  return [url, location];
+  const loc = React.useContext(Context);
+  const [, setUrl] = React.useState(loc.url);
+  React.useLayoutEffect(() => loc.onChange(() => setUrl(loc.url)), [loc]);
+  return [loc.url, loc];
 }
 
 /**
