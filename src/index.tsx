@@ -170,15 +170,15 @@ export function withLink<
     onClick?: React.MouseEventHandler<HTMLAnchorElement>;
   }
 >(Component: React.ComponentType<P>) {
-  return (props: P & { to: string }) => {
+  return ({ to, ...props }: P & { to: string }) => {
     return (
       <Context.Consumer>
         {location => {
           return (
             <Component
-              {...props}
-              href={location.format(props.to)}
-              onClick={e => onClick(e, location, props.to, props)}
+              {...props as any as P}
+              href={location.format(to)}
+              onClick={e => onClick(e, location, to, props)}
             />
           );
         }}
