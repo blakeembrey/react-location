@@ -3,15 +3,14 @@
     "target": "es2015",
     "lib": ["es2015", "dom"],
     "jsx": "react",
-    "allowSyntheticDefaultImports": true,
     "rootDir": "src",
     "outDir": "dist",
     "module": "commonjs",
     "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
     "strict": true,
     "declaration": true,
     "sourceMap": true,
-    "inlineSources": true,
-    "noUnusedLocals": true
+    "inlineSources": true
   }
 }

@@ -5,9 +5,7 @@
 [![Build status][travis-image]][travis-url]
 [![Test coverage][coveralls-image]][coveralls-url]
 
-> Light-weight and universal react routing.
-
-Uses [React.js hooks](https://reactjs.org/docs/hooks-intro.html).
+> Light-weight and universal React.js routing.
 
 ## Installation
 
@@ -35,8 +33,8 @@ const App = () => {
               <Link to="/about">About</Link>
             </nav>
 
-            {url.pathname === '/about-me' && <Redirect to="/about" />}
             {url.pathname === "/" && <div>Home</div>}
+            {url.pathname === "/about-me" && <Redirect to="/about" />}
             {url.pathname === "/about" && <div>About</div>}
           </div>
         );

@@ -1,7 +1,7 @@
 {
   "name": "@blakeembrey/react-location",
   "version": "1.4.3",
-  "description": "Light-weight and universal react routing",
+  "description": "Light-weight and universal React.js routing",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [

@@ -22,7 +22,7 @@ export class SimpleLocation {
   }
 
   set url(url: URL) {
-    // Avoid unnecessary changes.
+    // Avoids unnecessary changes.
     if (this[currentUrl] && url.href === this[currentUrl].href) return;
 
     this[currentUrl] = url;
@@ -176,7 +176,7 @@ export function withLink<
         {location => {
           return (
             <Component
-              {...props as any as P}
+              {...(props as any) as P}
               href={location.format(to)}
               onClick={e => onClick(e, location, to, props)}
             />
