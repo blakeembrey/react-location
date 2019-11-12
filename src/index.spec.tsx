@@ -11,6 +11,16 @@ import {
 } from "./index";
 
 describe("react location", () => {
+  it("should normalize pathnames", () => {
+    const location = new SimpleLocation(new URL("http://example.com"));
+
+    location.push("/cafe\u0301");
+    expect(location.url.pathname).toEqual("/cafe%CC%81");
+
+    location.push("/caf\u00E9");
+    expect(location.url.pathname).toEqual("/caf%C3%A9");
+  });
+
   it("should render link element", () => {
     const node = document.createElement("div");
 
