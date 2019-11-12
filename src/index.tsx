@@ -7,6 +7,15 @@ export const currentUrl = Symbol("currentUrl");
 export const callbackFns = Symbol("callbackFns");
 
 /**
+ * Create a normalized URL object.
+ */
+const createURL = (url: string, base?: string) => {
+  const urlObject = new URL(url, base);
+  urlObject.pathname = urlObject.pathname.replace(/\/+/g, "/");
+  return urlObject;
+};
+
+/**
  * Simple in-memory location with no external helpers.
  */
 export class SimpleLocation {
@@ -30,7 +39,7 @@ export class SimpleLocation {
   }
 
   push(location: string) {
-    this.url = new URL(this.format(location), this.url.href);
+    this.url = createURL(this.format(location), this.url.href);
   }
 
   format(location: string) {
@@ -49,18 +58,18 @@ export class SimpleLocation {
  */
 export class HistoryLocation extends SimpleLocation {
   private onpopstate = () => {
-    this.url = new URL(window.location.href);
+    this.url = createURL(window.location.href);
   };
 
   constructor() {
-    super(new URL(window.location.href));
+    super(createURL(window.location.href));
 
     window.addEventListener("popstate", this.onpopstate);
   }
 
   push(location: string) {
     const url = this.format(location);
-    this.url = new URL(url, window.location.href);
+    this.url = createURL(url, window.location.href);
     window.history.pushState(undefined, "", url);
   }
 
@@ -82,11 +91,11 @@ function pathFromHash(hash: string) {
  */
 export class HashLocation extends SimpleLocation {
   private listener = () => {
-    this.url = new URL(pathFromHash(location.hash), location.href);
+    this.url = createURL(pathFromHash(location.hash), location.href);
   };
 
   constructor() {
-    super(new URL(pathFromHash(location.hash), location.href));
+    super(createURL(pathFromHash(location.hash), location.href));
 
     window.addEventListener("hashchange", this.listener);
   }
@@ -96,7 +105,7 @@ export class HashLocation extends SimpleLocation {
   }
 
   format(location: string) {
-    const { pathname, search, hash } = new URL(location, this.url.href);
+    const { pathname, search, hash } = createURL(location, this.url.href);
 
     return `#!${pathname}${search}${hash}`;
   }
@@ -110,7 +119,7 @@ export class HashLocation extends SimpleLocation {
  * Global routing context.
  */
 export const Context = React.createContext(
-  new SimpleLocation(new URL("http://localhost"))
+  new SimpleLocation(createURL("http://localhost"))
 );
 
 /**

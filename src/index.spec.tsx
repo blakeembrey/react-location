@@ -19,6 +19,9 @@ describe("react location", () => {
 
     location.push("/caf\u00E9");
     expect(location.url.pathname).toEqual("/caf%C3%A9");
+
+    location.push("/foo///bar");
+    expect(location.url.pathname).toEqual("/foo/bar");
   });
 
   it("should render link element", () => {
