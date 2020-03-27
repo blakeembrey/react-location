@@ -7,6 +7,7 @@
     "outDir": "dist",
     "module": "commonjs",
     "moduleResolution": "node",
+    "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "declaration": true,

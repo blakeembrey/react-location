@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 
 /**
  * Private location properties.
@@ -7,20 +7,11 @@ export const currentUrl = Symbol("currentUrl");
 export const callbackFns = Symbol("callbackFns");
 
 /**
- * Create a normalized URL object.
- */
-const createURL = (url: string, base?: string) => {
-  const urlObject = new URL(url, base);
-  urlObject.pathname = urlObject.pathname.replace(/\/+/g, "/");
-  return urlObject;
-};
-
-/**
  * Simple in-memory location with no external helpers.
  */
 export class SimpleLocation {
   private [currentUrl]: URL;
-  private [callbackFns]: Set<() => void> = new Set();
+  private [callbackFns]: Set<(url: URL) => void> = new Set();
 
   constructor(url: URL) {
     this.url = url;
@@ -35,18 +26,18 @@ export class SimpleLocation {
     if (this[currentUrl] && url.href === this[currentUrl].href) return;
 
     this[currentUrl] = url;
-    for (const fn of this[callbackFns]) fn();
+    for (const fn of this[callbackFns]) fn(url);
   }
 
   push(location: string) {
-    this.url = createURL(this.format(location), this.url.href);
+    this.url = new URL(this.format(location), this.url.href);
   }
 
   format(location: string) {
     return location;
   }
 
-  onChange(fn: () => void) {
+  onChange(fn: (url: URL) => void) {
     const fns = this[callbackFns];
     fns.add(fn);
     return () => void fns.delete(fn);
@@ -57,24 +48,24 @@ export class SimpleLocation {
  * History-based location for browsers.
  */
 export class HistoryLocation extends SimpleLocation {
-  private onpopstate = () => {
-    this.url = createURL(window.location.href);
+  private listener = () => {
+    this.url = new URL(window.location.href);
   };
 
   constructor() {
-    super(createURL(window.location.href));
+    super(new URL(window.location.href));
 
-    window.addEventListener("popstate", this.onpopstate);
+    window.addEventListener("popstate", this.listener);
   }
 
   push(location: string) {
-    const url = this.format(location);
-    this.url = createURL(url, window.location.href);
-    window.history.pushState(undefined, "", url);
+    const newURL = this.format(location);
+    window.history.pushState(undefined, "", newURL);
+    this.url = new URL(newURL, window.location.href);
   }
 
   unsubscribe() {
-    window.removeEventListener("popstate", this.onpopstate);
+    window.removeEventListener("popstate", this.listener);
   }
 }
 
@@ -91,11 +82,11 @@ function pathFromHash(hash: string) {
  */
 export class HashLocation extends SimpleLocation {
   private listener = () => {
-    this.url = createURL(pathFromHash(location.hash), location.href);
+    this.url = new URL(pathFromHash(location.hash), location.href);
   };
 
   constructor() {
-    super(createURL(pathFromHash(location.hash), location.href));
+    super(new URL(pathFromHash(location.hash), location.href));
 
     window.addEventListener("hashchange", this.listener);
   }
@@ -105,7 +96,7 @@ export class HashLocation extends SimpleLocation {
   }
 
   format(location: string) {
-    const { pathname, search, hash } = createURL(location, this.url.href);
+    const { pathname, search, hash } = new URL(location, this.url.href);
 
     return `#!${pathname}${search}${hash}`;
   }
@@ -119,7 +110,7 @@ export class HashLocation extends SimpleLocation {
  * Global routing context.
  */
 export const Context = React.createContext(
-  new SimpleLocation(createURL("http://localhost"))
+  new SimpleLocation(new URL("http://localhost"))
 );
 
 /**
@@ -128,7 +119,7 @@ export const Context = React.createContext(
 export function useRouter(): [URL, SimpleLocation] {
   const loc = React.useContext(Context);
   const [, setUrl] = React.useState(loc.url);
-  React.useLayoutEffect(() => loc.onChange(() => setUrl(loc.url)), [loc]);
+  React.useLayoutEffect(() => loc.onChange(setUrl), [loc]);
   return [loc.url, loc];
 }
 
@@ -150,23 +141,25 @@ export function Router({ children }: RouterProps) {
 /**
  * Inline `<Link />` click handler.
  */
-function onClick(
-  e: React.MouseEvent<HTMLAnchorElement>,
-  location: SimpleLocation,
-  to: string,
-  props: React.AnchorHTMLAttributes<HTMLAnchorElement>
-) {
-  // Proxy event to user.
-  if (props.onClick) props.onClick(e);
+export function useClick(to: string) {
+  const location = React.useContext(Context);
 
-  // Reference: https://github.com/ReactTraining/react-router/blob/5407993bd01647405586bbdd25f24de05743e4a7/packages/react-router-dom/modules/Link.js#L18-L22
-  if (e.defaultPrevented) return;
-  if (e.button !== 0) return;
-  if (props.target && props.target !== "_self") return;
-  if (e.metaKey || e.altKey || e.ctrlKey || e.shiftKey) return;
+  return (e: React.MouseEvent<HTMLAnchorElement>) => {
+    // Reference: https://github.com/ReactTraining/react-router/blob/5407993bd01647405586bbdd25f24de05743e4a7/packages/react-router-dom/modules/Link.js#L18-L22
+    if (
+      e.defaultPrevented ||
+      e.button !== 0 ||
+      (e.currentTarget.target && e.currentTarget.target !== "_self") ||
+      e.metaKey ||
+      e.altKey ||
+      e.ctrlKey ||
+      e.shiftKey
+    )
+      return;
 
-  e.preventDefault();
-  return location.push(to);
+    e.preventDefault();
+    location.push(to);
+  };
 }
 
 /**
@@ -180,18 +173,22 @@ export function withLink<
   }
 >(Component: React.ComponentType<P>) {
   return ({ to, ...props }: P & { to: string }) => {
+    const location = React.useContext(Context);
+    const click = useClick(to);
+    const onClick = React.useCallback(
+      (e: React.MouseEvent<HTMLAnchorElement>) => {
+        if (props.onClick) props.onClick(e);
+        click(e);
+      },
+      [props.onClick, click]
+    );
+
     return (
-      <Context.Consumer>
-        {location => {
-          return (
-            <Component
-              {...(props as any) as P}
-              href={location.format(to)}
-              onClick={e => onClick(e, location, to, props)}
-            />
-          );
-        }}
-      </Context.Consumer>
+      <Component
+        {...((props as any) as P)}
+        href={location.format(to)}
+        onClick={onClick}
+      />
     );
   };
 }
@@ -200,7 +197,7 @@ export function withLink<
  * Create a simple `<a />` link.
  */
 export const Link = withLink<React.AnchorHTMLAttributes<HTMLAnchorElement>>(
-  props => <a {...props} />
+  (props) => <a {...props} />
 );
 
 /**

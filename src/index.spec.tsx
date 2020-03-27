@@ -7,142 +7,199 @@ import {
   Link,
   SimpleLocation,
   HashLocation,
-  HistoryLocation
+  HistoryLocation,
+  useRouter,
 } from "./index";
 
 describe("react location", () => {
-  it("should normalize pathnames", () => {
+  it("should push location changes", () => {
+    const fn = jest.fn();
     const location = new SimpleLocation(new URL("http://example.com"));
 
+    location.onChange(fn);
+
     location.push("/cafe\u0301");
-    expect(location.url.pathname).toEqual("/cafe%CC%81");
+    expect(location.url.href).toEqual("http://example.com/cafe%CC%81");
+    expect(fn).toBeCalledTimes(1);
 
     location.push("/caf\u00E9");
-    expect(location.url.pathname).toEqual("/caf%C3%A9");
+    expect(location.url.href).toEqual("http://example.com/caf%C3%A9");
+    expect(fn).toBeCalledTimes(2);
 
     location.push("/foo///bar");
-    expect(location.url.pathname).toEqual("/foo/bar");
+    expect(location.url.href).toEqual("http://example.com/foo///bar");
+    expect(fn).toBeCalledTimes(3);
+
+    location.push("#test");
+    expect(location.url.href).toEqual("http://example.com/foo///bar#test");
+    expect(fn).toBeCalledTimes(4);
   });
 
-  it("should render link element", () => {
-    const node = document.createElement("div");
+  describe("with dom", () => {
+    let node: HTMLDivElement;
 
-    render(
-      <Link to="/foo" className="test">
-        Link
-      </Link>,
-      node
-    );
+    beforeEach(() => {
+      node = document.createElement("div");
 
-    const el = node.children[0] as HTMLAnchorElement;
+      document.body.appendChild(node);
+    });
 
-    expect(el.nodeName).toEqual("A");
-    expect(el.href).toEqual("http://localhost/foo");
-    expect(el.textContent).toEqual("Link");
-    expect(el.className).toEqual("test");
-  });
+    afterEach(() => {
+      document.body.removeChild(node);
+    });
 
-  it("should render simple location", () => {
-    const location = new SimpleLocation(new URL("http://example.com/test"));
-    const node = document.createElement("div");
+    it("should render link element", () => {
+      render(
+        <Link to="/foo" className="test">
+          Link
+        </Link>,
+        node
+      );
 
-    render(
-      <Context.Provider value={location}>
-        <Router>
-          {({ pathname }) => {
-            return <div>{pathname}</div>;
-          }}
-        </Router>
-      </Context.Provider>,
-      node
-    );
+      const el = node.children[0] as HTMLAnchorElement;
 
-    const el = node.children[0];
+      expect(el.nodeName).toEqual("A");
+      expect(el.href).toEqual("http://localhost/foo");
+      expect(el.textContent).toEqual("Link");
+      expect(el.className).toEqual("test");
+    });
 
-    expect(el.nodeName).toEqual("DIV");
-    expect(el.textContent).toEqual("/test");
+    describe("simple location", () => {
+      it("should update url location on change", () => {
+        const location = new SimpleLocation(new URL("http://example.com/test"));
 
-    act(() => location.push("/foo"));
+        render(
+          <Context.Provider value={location}>
+            <Router>{({ href }) => <div>{href}</div>}</Router>
+          </Context.Provider>,
+          node
+        );
 
-    expect(el.textContent).toEqual("/foo");
-  });
+        const el = node.children[0];
 
-  it("should render hash location", () => {
-    const location = new HashLocation();
-    const node = document.createElement("div");
+        expect(el.nodeName).toEqual("DIV");
+        expect(el.textContent).toEqual("http://example.com/test");
 
-    document.body.appendChild(node);
+        act(() => location.push("/foo"));
+        expect(el.textContent).toEqual("http://example.com/foo");
 
-    render(
-      <Context.Provider value={location}>
-        <Link to="/test">Click here</Link>
-      </Context.Provider>,
-      node
-    );
+        act(() => location.push("#test"));
+        expect(el.textContent).toEqual("http://example.com/foo#test");
+      });
 
-    const el = node.children[0] as HTMLAnchorElement;
+      it("should render links with simple location", () => {
+        const location = new SimpleLocation(new URL("http://example.com"));
 
-    expect(window.location.href).toEqual("http://localhost/");
+        render(
+          <Context.Provider value={location}>
+            <Link to="/test">Click here</Link>
+          </Context.Provider>,
+          node
+        );
 
-    act(() => el.click());
+        const el = node.children[0] as HTMLAnchorElement;
 
-    expect(window.location.href).toEqual("http://localhost/#!/test");
+        expect(location.url.href).toEqual("http://example.com/");
 
-    window.location.hash = ""; // Reset.
-    document.body.removeChild(node);
-  });
+        act(() => el.click());
+        expect(location.url.href).toEqual("http://example.com/test");
+      });
+    });
 
-  it("should render relative hash location links", () => {
-    window.location.hash = "#!/foo/bar?test=true";
+    describe("hash location", () => {
+      afterEach(() => {
+        window.location.hash = ""; // Reset.
+      });
 
-    const location = new HashLocation();
-    const node = document.createElement("div");
+      it("should render links with hash location", () => {
+        const location = new HashLocation();
 
-    document.body.appendChild(node);
+        render(
+          <Context.Provider value={location}>
+            <Link to="/test">Click here</Link>
+          </Context.Provider>,
+          node
+        );
 
-    render(
-      <Context.Provider value={location}>
-        <Link to="baz">Click here</Link>
-      </Context.Provider>,
-      node
-    );
+        const el = node.children[0] as HTMLAnchorElement;
 
-    const el = node.children[0] as HTMLAnchorElement;
+        expect(window.location.href).toEqual("http://localhost/");
 
-    expect(window.location.href).toEqual(
-      "http://localhost/#!/foo/bar?test=true"
-    );
+        act(() => el.click());
+        expect(window.location.href).toEqual("http://localhost/#!/test");
+      });
 
-    act(() => el.click());
+      it("should render relative hash location links", () => {
+        window.location.hash = "#!/foo/bar?test=true";
 
-    expect(window.location.href).toEqual("http://localhost/#!/foo/baz");
+        const location = new HashLocation();
 
-    window.location.hash = ""; // Reset.
-    document.body.removeChild(node);
-  });
+        render(
+          <Context.Provider value={location}>
+            <Link to="baz">Click here</Link>
+          </Context.Provider>,
+          node
+        );
 
-  it("should render history location", () => {
-    const location = new HistoryLocation();
-    const node = document.createElement("div");
+        const el = node.children[0] as HTMLAnchorElement;
 
-    document.body.appendChild(node);
+        expect(window.location.href).toEqual(
+          "http://localhost/#!/foo/bar?test=true"
+        );
 
-    render(
-      <Context.Provider value={location}>
-        <Link to="/test">Click here</Link>
-      </Context.Provider>,
-      node
-    );
+        act(() => el.click());
+        expect(window.location.href).toEqual("http://localhost/#!/foo/baz");
+      });
+    });
 
-    const el = node.children[0] as HTMLAnchorElement;
+    describe("history location", () => {
+      let spy: jest.SpyInstance;
 
-    expect(window.location.href).toEqual("http://localhost/");
+      beforeAll(() => {
+        spy = jest.spyOn(history, "pushState");
+      });
 
-    act(() => el.click());
+      afterEach(() => {
+        window.history.pushState(undefined, "", "/");
+        spy.mockClear(); // Reset spy.
+      });
 
-    expect(window.location.href).toEqual("http://localhost/test");
+      it("should render links with history location", () => {
+        const location = new HistoryLocation();
 
-    window.history.back();
-    document.body.removeChild(node);
+        render(
+          <Context.Provider value={location}>
+            <Link to="/test">Click here</Link>
+          </Context.Provider>,
+          node
+        );
+
+        const el = node.children[0] as HTMLAnchorElement;
+
+        expect(window.location.href).toEqual("http://localhost/");
+
+        act(() => el.click());
+        expect(window.location.href).toEqual("http://localhost/test");
+        expect(spy).toHaveBeenCalledTimes(1);
+      });
+
+      it("should push hash changes", () => {
+        const location = new HistoryLocation();
+
+        render(
+          <Context.Provider value={location}>
+            <Router>{({ href }) => <div>{href}</div>}</Router>
+          </Context.Provider>,
+          node
+        );
+
+        expect(window.location.href).toEqual("http://localhost/");
+        expect(spy).toHaveBeenCalledTimes(0);
+
+        act(() => location.push("#test"));
+        expect(window.location.href).toEqual("http://localhost/#test");
+        expect(spy).toHaveBeenCalledTimes(1);
+      });
+    });
   });
 });
