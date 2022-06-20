@@ -1,4 +1,4 @@
-import React from "react";
+import { useLayoutEffect, useContext, createContext, useState } from "react";
 
 /**
  * Private location properties.
@@ -14,7 +14,7 @@ export class SimpleLocation {
   private [callbackFns]: Set<(url: URL) => void> = new Set();
 
   constructor(url: URL) {
-    this.url = url;
+    this[currentUrl] = url;
   }
 
   get url() {
@@ -23,7 +23,7 @@ export class SimpleLocation {
 
   set url(url: URL) {
     // Avoids unnecessary changes.
-    if (this[currentUrl] && url.href === this[currentUrl].href) return;
+    if (url.href === this[currentUrl].href) return;
 
     this[currentUrl] = url;
     for (const fn of this[callbackFns]) fn(url);
@@ -73,8 +73,8 @@ export class HistoryLocation extends SimpleLocation {
  * Get URL path from hash string.
  */
 function pathFromHash(hash: string) {
-  if (hash.substr(0, 3) !== "#!/") return "/";
-  return hash.substr(2);
+  if (hash.slice(0, 3) !== "#!/") return "/";
+  return hash.slice(2);
 }
 
 /**
@@ -109,42 +109,37 @@ export class HashLocation extends SimpleLocation {
 /**
  * Global routing context.
  */
-export const Context = React.createContext(
-  new SimpleLocation(new URL("http://localhost"))
+export const Context = createContext(
+  new SimpleLocation(new URL("http://0.0.0.0"))
 );
 
 /**
  * React hook for routing.
  */
-export function useRouter(): [URL, SimpleLocation] {
-  const loc = React.useContext(Context);
-  const [, setUrl] = React.useState(loc.url);
-  React.useLayoutEffect(() => loc.onChange(setUrl), [loc]);
-  return [loc.url, loc];
+export function useURL(): URL {
+  const location = useContext(Context);
+  const [url, setUrl] = useState(location.url);
+  useLayoutEffect(() => location.onChange(setUrl), [location]);
+  return url;
 }
 
 /**
- * Router props.
+ * Format a link for `<a />` elements.
  */
-export interface RouterProps {
-  children: (url: URL, location: SimpleLocation) => JSX.Element | null;
+export function useHref(to: string) {
+  const location = useContext(Context);
+  return location.format(to);
 }
 
 /**
- * Route component listens for route changes.
+ * Inline `<a />` click handler.
  */
-export function Router({ children }: RouterProps) {
-  const [url, location] = useRouter();
-  return children(url, location);
-}
+export function useLinkHandler(
+  to: string
+): React.MouseEventHandler<HTMLAnchorElement> {
+  const location = useContext(Context);
 
-/**
- * Inline `<Link />` click handler.
- */
-export function useClick(to: string) {
-  const location = React.useContext(Context);
-
-  return (e: React.MouseEvent<HTMLAnchorElement>) => {
+  return (e) => {
     // Reference: https://github.com/ReactTraining/react-router/blob/5407993bd01647405586bbdd25f24de05743e4a7/packages/react-router-dom/modules/Link.js#L18-L22
     if (
       e.defaultPrevented ||
@@ -162,56 +157,21 @@ export function useClick(to: string) {
   };
 }
 
-/**
- * Export HOC for `<a />` elements.
- */
-export function withLink<
-  P extends {
-    href?: string;
-    children?: React.ReactNode;
-    onClick?: React.MouseEventHandler<HTMLAnchorElement>;
-  }
->(Component: React.ComponentType<P>) {
-  return ({ to, ...props }: P & { to: string }) => {
-    const location = React.useContext(Context);
-    const click = useClick(to);
-    const onClick = React.useCallback(
-      (e: React.MouseEvent<HTMLAnchorElement>) => {
-        if (props.onClick) props.onClick(e);
-        click(e);
-      },
-      [props.onClick, click]
-    );
-
-    return (
-      <Component
-        {...((props as any) as P)}
-        href={location.format(to)}
-        onClick={onClick}
-      />
-    );
-  };
-}
+export type LinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
+  to: string;
+};
 
 /**
  * Create a simple `<a />` link.
  */
-export const Link = withLink<React.AnchorHTMLAttributes<HTMLAnchorElement>>(
-  (props) => <a {...props} />
-);
+export function Link({ to, ...props }: LinkProps) {
+  const href = useHref(to);
+  const handleClick = useLinkHandler(to);
 
-/**
- * Redirect component properties.
- */
-export interface RedirectProps {
-  to: string;
-}
+  const onClick: React.MouseEventHandler<HTMLAnchorElement> = (event) => {
+    props.onClick?.(event);
+    handleClick(event);
+  };
 
-/**
- * Declarative redirection.
- */
-export function Redirect({ to }: RedirectProps) {
-  const context = React.useContext(Context);
-  React.useEffect(() => context.push(to));
-  return null;
+  return <a {...props} href={href} onClick={onClick} />;
 }

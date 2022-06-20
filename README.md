@@ -18,28 +18,21 @@ npm install @blakeembrey/react-location --save
 **React Location** exports a React.js `Context` to control routing. The default router is `SimpleLocation`, useful for testing or server-side rendering.
 
 ```js
-import { Link, Redirect, useRouter, Router } from "@blakeembrey/react-location";
+import { Link, useURL } from "@blakeembrey/react-location";
 
 const App = () => {
-  // Or `const [url, location] = useRouter()`.
+  const url = useURL();
 
   return (
-    <Router>
-      {(url, location) => {
-        return (
-          <div>
-            <nav>
-              <Link to="/">Home</Link>
-              <Link to="/about">About</Link>
-            </nav>
+    <div>
+      <nav>
+        <Link to="/">Home</Link>
+        <Link to="/about">About</Link>
+      </nav>
 
-            {url.pathname === "/" && <div>Home</div>}
-            {url.pathname === "/about-me" && <Redirect to="/about" />}
-            {url.pathname === "/about" && <div>About</div>}
-          </div>
-        );
-      }}
-    </Route>
+      {url.pathname === "/" && <div>Home</div>}
+      {url.pathname === "/about" && <div>About</div>}
+    </div>
   );
 };
 ```
@@ -67,21 +60,21 @@ export default () => (
 ### [Hash Location](examples/hash/app.js)
 
 ```js
-import { Context, HashLocation } from '@blakeembrey/react-location'
+import { Context, HashLocation } from "@blakeembrey/react-location";
 
 <Context.Provider value={new HashLocation()}>
   <App />
-</Context.Provider>
+</Context.Provider>;
 ```
 
 ### [History Location](examples/history/app.js)
 
 ```js
-import { Context, HistoryLocation } from '@blakeembrey/react-location'
+import { Context, HistoryLocation } from "@blakeembrey/react-location";
 
 <Context.Provider value={new HistoryLocation()}>
   <App />
-</Context.Provider>
+</Context.Provider>;
 ```
 
 ### [Simple Location](examples/simple/app.js)

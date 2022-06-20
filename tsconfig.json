@@ -1,17 +1,11 @@
 {
+  "extends": "@borderless/ts-scripts/configs/tsconfig.json",
   "compilerOptions": {
-    "target": "es2015",
-    "lib": ["es2015", "dom"],
-    "jsx": "react",
+    "target": "ES2020",
+    "lib": ["ES2020", "DOM"],
+    "jsx": "react-jsx",
     "rootDir": "src",
-    "outDir": "dist",
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "declaration": true,
-    "sourceMap": true,
-    "inlineSources": true
-  }
+    "outDir": "dist"
+  },
+  "include": ["./src/**/*"]
 }

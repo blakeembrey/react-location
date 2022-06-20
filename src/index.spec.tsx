@@ -1,19 +1,31 @@
-import * as React from "react";
+/**
+ * @vitest-environment jsdom
+ */
+
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  beforeEach,
+  afterEach,
+  vi,
+  SpyInstance,
+} from "vitest";
 import { render } from "react-dom";
 import { act } from "react-dom/test-utils";
 import {
   Context,
-  Router,
   Link,
   SimpleLocation,
   HashLocation,
   HistoryLocation,
-  useRouter,
-} from "./index";
+  useURL,
+} from "./index.js";
 
 describe("react location", () => {
   it("should push location changes", () => {
-    const fn = jest.fn();
+    const fn = vi.fn();
     const location = new SimpleLocation(new URL("http://example.com"));
 
     location.onChange(fn);
@@ -59,7 +71,7 @@ describe("react location", () => {
       const el = node.children[0] as HTMLAnchorElement;
 
       expect(el.nodeName).toEqual("A");
-      expect(el.href).toEqual("http://localhost/foo");
+      expect(el.href).toEqual("http://localhost:3000/foo");
       expect(el.textContent).toEqual("Link");
       expect(el.className).toEqual("test");
     });
@@ -68,9 +80,14 @@ describe("react location", () => {
       it("should update url location on change", () => {
         const location = new SimpleLocation(new URL("http://example.com/test"));
 
+        const App = () => {
+          const { href } = useURL();
+          return <div>{href}</div>;
+        };
+
         render(
           <Context.Provider value={location}>
-            <Router>{({ href }) => <div>{href}</div>}</Router>
+            <App />
           </Context.Provider>,
           node
         );
@@ -123,10 +140,10 @@ describe("react location", () => {
 
         const el = node.children[0] as HTMLAnchorElement;
 
-        expect(window.location.href).toEqual("http://localhost/");
+        expect(window.location.href).toEqual("http://localhost:3000/");
 
         act(() => el.click());
-        expect(window.location.href).toEqual("http://localhost/#!/test");
+        expect(window.location.href).toEqual("http://localhost:3000/#!/test");
       });
 
       it("should render relative hash location links", () => {
@@ -144,19 +161,21 @@ describe("react location", () => {
         const el = node.children[0] as HTMLAnchorElement;
 
         expect(window.location.href).toEqual(
-          "http://localhost/#!/foo/bar?test=true"
+          "http://localhost:3000/#!/foo/bar?test=true"
         );
 
         act(() => el.click());
-        expect(window.location.href).toEqual("http://localhost/#!/foo/baz");
+        expect(window.location.href).toEqual(
+          "http://localhost:3000/#!/foo/baz"
+        );
       });
     });
 
     describe("history location", () => {
-      let spy: jest.SpyInstance;
+      let spy: SpyInstance;
 
       beforeAll(() => {
-        spy = jest.spyOn(history, "pushState");
+        spy = vi.spyOn(history, "pushState");
       });
 
       afterEach(() => {
@@ -176,28 +195,33 @@ describe("react location", () => {
 
         const el = node.children[0] as HTMLAnchorElement;
 
-        expect(window.location.href).toEqual("http://localhost/");
+        expect(window.location.href).toEqual("http://localhost:3000/");
 
         act(() => el.click());
-        expect(window.location.href).toEqual("http://localhost/test");
+        expect(window.location.href).toEqual("http://localhost:3000/test");
         expect(spy).toHaveBeenCalledTimes(1);
       });
 
       it("should push hash changes", () => {
         const location = new HistoryLocation();
 
+        const App = () => {
+          const { href } = useURL();
+          return <div>{href}</div>;
+        };
+
         render(
           <Context.Provider value={location}>
-            <Router>{({ href }) => <div>{href}</div>}</Router>
+            <App />
           </Context.Provider>,
           node
         );
 
-        expect(window.location.href).toEqual("http://localhost/");
+        expect(window.location.href).toEqual("http://localhost:3000/");
         expect(spy).toHaveBeenCalledTimes(0);
 
         act(() => location.push("#test"));
-        expect(window.location.href).toEqual("http://localhost/#test");
+        expect(window.location.href).toEqual("http://localhost:3000/#test");
         expect(spy).toHaveBeenCalledTimes(1);
       });
     });
