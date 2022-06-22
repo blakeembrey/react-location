@@ -1,4 +1,4 @@
-import { useLayoutEffect, useContext, createContext, useState } from "react";
+import { useEffect, useContext, createContext, useState } from "react";
 
 /**
  * Private location properties.
@@ -119,7 +119,7 @@ export const Context = createContext(
 export function useURL(): URL {
   const location = useContext(Context);
   const [url, setUrl] = useState(location.url);
-  useLayoutEffect(() => location.onChange(setUrl), [location]);
+  useEffect(() => location.onChange(setUrl), [location]);
   return url;
 }
 

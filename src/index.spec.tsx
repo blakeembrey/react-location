@@ -77,33 +77,6 @@ describe("react location", () => {
     });
 
     describe("simple location", () => {
-      it("should update url location on change", () => {
-        const location = new SimpleLocation(new URL("http://example.com/test"));
-
-        const App = () => {
-          const { href } = useURL();
-          return <div>{href}</div>;
-        };
-
-        render(
-          <Context.Provider value={location}>
-            <App />
-          </Context.Provider>,
-          node
-        );
-
-        const el = node.children[0];
-
-        expect(el.nodeName).toEqual("DIV");
-        expect(el.textContent).toEqual("http://example.com/test");
-
-        act(() => location.push("/foo"));
-        expect(el.textContent).toEqual("http://example.com/foo");
-
-        act(() => location.push("#test"));
-        expect(el.textContent).toEqual("http://example.com/foo#test");
-      });
-
       it("should render links with simple location", () => {
         const location = new SimpleLocation(new URL("http://example.com"));
 
